@@ -7,8 +7,8 @@
 	<script src="lib/jquery.js"></script>
 	<style>
 		#container td{
-			width:30px;
-			height:30px;
+			width:20px;
+			height:20px;
 			padding:0;
 			margin:0;
 		}
@@ -30,13 +30,13 @@
 <body>
 
 <div id="container">
-	分数：{{score}}
+	分数：{{dieRows*100}}
 	<table>
 		<tr v-for="y in 5"><td v-for="x in 5" v-bind:class="getNextActiveClass(x,y)"></td></tr>
 	</table>
 	
 	<table>
-		<tr v-for="row in background"><td v-for="cell in row" v-bind:class="{'active':cell.active,'default':!cell.active&&!cell.background,'background':cell.background}"></td></tr>
+		<tr v-for="row in background"><td v-for="cell in row" v-bind:class="getCellClass(cell)"></td></tr>
 	</table>
 </div>
 

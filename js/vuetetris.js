@@ -3,12 +3,12 @@ var vm=new Vue({
 	el:'#container',
 	
 	data:{
-		COLS:10,
-		ROWS:15,
-		score:0,
-		activeCells:[],
-		nextActiveCells:[],
-		background:[]
+		COLS:10,//宽度
+		ROWS:15,//高度
+		dieRows:0,//累计消除行数
+		activeCells:[],//活动方块
+		nextActiveCells:[],//下一个活动方块
+		background:[]//背景格子
 	},
 	
 	computed:{
@@ -26,6 +26,14 @@ var vm=new Vue({
 			this.renewActiveCells();
 		},
 		
+		getCellClass:function(cell){
+			return {
+				'active':cell.active, 
+				'default':!cell.active&&!cell.background,
+				'background':cell.background
+			};
+		},
+		
 		getNextActiveClass:function(x,y){
 			var active=false;
 			if(this.nextActiveCells[y] && this.nextActiveCells[y][x]){
@@ -36,9 +44,9 @@ var vm=new Vue({
 				'default':!active
 			};
 		},
-		
-		
-		renewActiveCells:function(){
+			
+		//活动方块转为背景格子
+		activeCells2Backgroud:function(){
 			if(this.activeCells.length>0){
 				var cell;
 				for(var i=0;i<this.activeCells.length;i++){
@@ -46,8 +54,12 @@ var vm=new Vue({
 					this.background[cell.y][cell.x].background=true;
 				}
 			}
+			this.activeCells=[];
+		},
+		
+		//生成新的方块	
+		renewActiveCells:function(){
 			var random=Math.floor(Math.random()*7+1);
-			//random=6;
 			switch(random){
 				/* 
 					■ ■ ■ 
@@ -138,10 +150,12 @@ var vm=new Vue({
 				default:
 				break;
 			}
+			
 			this.activeCells.type=random;
+			
 			//移动方块到合适位置
-			for(var i=0;i<7;i++){
-				//this.rightShift(this.activeCells);
+			for(var i=0;i<this.COLS/2-1;i++){
+				this.rightShift(this.activeCells);
 			}
 		},
 		
@@ -197,7 +211,6 @@ var vm=new Vue({
 				cells[i].x=center.x+center.y-srcY;
 				cells[i].y=center.y-center.x+srcX;
 			}
-			//console.log(cells)
 		},
 		
 		shift:function(type){
@@ -205,13 +218,14 @@ var vm=new Vue({
 				//不能下落，生成新的方块
 				if(type=='FALL'){
 					this.removeActiveCells();
-					this.renewActiveCells();
-					
+					this.activeCells2Backgroud();
 					this.dieLine();
+					this.renewActiveCells();
 					this.drawActiveCells();
 				}
 				return;
 			}
+			
 			this.removeActiveCells();
 			switch(type){
 				case 'LEFT':
@@ -239,6 +253,7 @@ var vm=new Vue({
 		
 		//试算能否移动
 		canShift:function(type){
+			var canShifFlag=true;
 			var cells=[];
 			//复制一份
 			for(var i=0;i<this.activeCells.length;i++){
@@ -270,14 +285,18 @@ var vm=new Vue({
 				var cell=cells[i];
 				//是否超边界
 				if(cell.x<0||cell.y<0||cell.x>=this.COLS||cell.y>=this.ROWS){
-					return false;
+					canShifFlag = false;
+					break;
 				}
 				//是否位置已被占
 				if(this.background[cell.y][cell.x].background==true){
-					return false;
+					canShifFlag = false;
+					break
 				}
 			}
-			return true;
+			//优化：考虑翻转时更灵活点 TODO
+			
+			return canShifFlag;
 		},
 		
 		//消行
@@ -298,6 +317,7 @@ var vm=new Vue({
 			}
 			//消行
 			if(dieFlag==true){
+				this.dieRows++;
 				for(var i=rowNum;i>=0;i--){
 					for(var x=0;x<this.COLS;x++){
 						if(i==0){
