@@ -46,7 +46,7 @@
 		el:'#container',
 		
 		data:{
-			COLS:12,
+			COLS:10,
 			ROWS:15,
 			score:0,
 			activeCells:[],
@@ -325,57 +325,34 @@
 			
 			//消行
 			dieLine:function(){
-				//记录需要消的行号
-				var dieRowsIdx=[];
 				for(var y=this.ROWS-1;y>=0;y--){
-					var dieFlag=true;
-					for(var x=this.COLS-1;x>=0;x--){
-						if(this.background[y][x].background==false){
-							dieFlag=false;
-							break;
-						}
-					}
-					if(dieFlag==true){
-						dieRowsIdx.push(y);
+					this.dieOneLine(y);
+				}
+			},
+			
+			dieOneLine:function(rowNum){
+				var dieFlag=true;
+				//判断该行是否需要消除
+				for(var x=this.COLS-1;x>=0;x--){
+					if(this.background[rowNum][x].background==false){
+						dieFlag=false;
+						break;
 					}
 				}
-				
-				for(var y=this.ROWS-1;y>=0;y--){
-					var dieFlag=true;
-					for(var x=this.COLS-1;x>=0;x--){
-						if(this.background[y][x].background==false){
-							dieFlag=false;
-							break;
-						}
-					}
-					if(dieFlag==true){
-						dieRowsIdx.push(y);
-					}
-				}
-				
-				var dieNum=0;
-				for(var i=0;i<dieRowsIdx.length;i++){
-					for(var y=dieRowsIdx[]
-				}
-				if(dieRowsIdx.length>0){
-				console.log(dieRowsIdx)
-					for(var y=this.ROWS-1;y>=0;y--){
-						if(this.inArray(y-dieNum,dieRowsIdx)){
-							for(var yy=y;yy>=0;yy--){
-								for(var x=0;x<this.COLS;x++){
-									if(y-dieNum<0){
-										this.background[yy][x].background=false;
-									}else{
-										this.background[yy][x].background=this.background[yy-dieNum][x].background;
-									}
-								}
+				//消行
+				if(dieFlag==true){
+					for(var i=rowNum;i>=0;i--){
+						for(var x=0;x<this.COLS;x++){
+							if(i==0){
+								this.background[i][x].background=false;
+							}else{
+								this.background[i][x].background=this.background[i-1][x].background;
 							}
-							dieNum++;
-						}
+						}	
 					}
-					this.score+=dieNum*100;
+					//再消一次，避免上行也需要消除
+					this.dieOneLine(rowNum);
 				}
-				
 			},
 			
 			inArray:function(target,arr){
