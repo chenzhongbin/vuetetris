@@ -15,17 +15,22 @@ var vm=new Vue({
 	},
 	
 	methods:{
+		//初始化，
 		init:function(){
 			for(var y=0;y<this.ROWS;y++){
 				var row=[];
 				for(var x=0;x<this.COLS;x++){
-					row.push({active:false,background:false});
+					row.push({
+						active:false,		//活动方块
+						background:false	//背景格子
+					});
 				}
 				this.background.push(row);
 			}
 			this.renewActiveCells();
 		},
 		
+		//背景格子显示
 		getCellClass:function(cell){
 			return {
 				'active':cell.active, 
@@ -34,6 +39,7 @@ var vm=new Vue({
 			};
 		},
 		
+		//预览下个方块
 		getNextActiveClass:function(x,y){
 			var active=false;
 			if(this.nextActiveCells){
@@ -62,8 +68,12 @@ var vm=new Vue({
 			this.activeCells=[];
 		},
 		
+		//重新生成下个方块
 		renewNextActiveCells:function(){
+			
+			//随机取数
 			var random=Math.floor(Math.random()*7+1);
+			
 			var cells=[];
 			switch(random){
 				/* 
@@ -184,7 +194,7 @@ var vm=new Vue({
 			this.renewNextActiveCells();
 		},
 		
-		//绘制方块
+		//绘制活动方块
 		drawActiveCells:function(){
 			var cell;
 			for(var i=0;i<this.activeCells.length;i++){
@@ -193,7 +203,7 @@ var vm=new Vue({
 			}
 		},
 		
-		//移除方块
+		//移除活动方块
 		removeActiveCells:function(){
 			var cell;
 			for(var i=0;i<this.activeCells.length;i++){
@@ -229,7 +239,9 @@ var vm=new Vue({
 			if(cells.type==7){
 				return;
 			}
-			var center=cells[0];
+			var center=cells[0];//中心格子
+			
+			//翻转算法
 			for(var i=1;i<cells.length;i++){
 				var srcX=cells[i].x;
 				var srcY=cells[i].y;
@@ -238,14 +250,15 @@ var vm=new Vue({
 			}
 		},
 		
+		//操作
 		shift:function(type){
 			if(!this.canShift(type)){
 				if(type=='FALL'){
-					this.removeActiveCells();//移除方块
-					this.activeCells2Backgroud();//活动方块变成背景
-					this.dieLine();//消行
-					this.renewActiveCells();//生成新的方块
-					this.drawActiveCells();//显示新的方块
+					this.removeActiveCells();		//移除活动方块
+					this.activeCells2Backgroud();	//活动方块变成背景
+					this.dieLine();					//消行
+					this.renewActiveCells();		//生成新的活动方块
+					this.drawActiveCells();			//显示新的活动方块
 				}
 				return;
 			}
@@ -279,6 +292,7 @@ var vm=new Vue({
 		canShift:function(type){
 			var canShifFlag=true;
 			var cells=[];
+			
 			//复制一份
 			for(var i=0;i<this.activeCells.length;i++){
 				var cell={
@@ -287,7 +301,8 @@ var vm=new Vue({
 				};
 				cells.push(cell);
 			}
-			//试算
+			
+			//对副本进行试算
 			switch(type){
 				case 'LEFT':
 					this.leftShift(cells);
@@ -304,6 +319,7 @@ var vm=new Vue({
 				default:
 				break;
 			}
+			
 			//判断是否能移动
 			for(var i=0;i<cells.length;i++){
 				var cell=cells[i];
@@ -318,6 +334,7 @@ var vm=new Vue({
 					break
 				}
 			}
+			
 			//优化：考虑翻转时更灵活点 TODO
 			
 			return canShifFlag;
@@ -330,6 +347,7 @@ var vm=new Vue({
 			}
 		},
 		
+		//消除指定行，并使上面行下落，如果下落行也可消除，则继续消除
 		dieOneLine:function(rowNum){
 			var dieFlag=true;
 			//判断该行是否需要消除
@@ -351,17 +369,8 @@ var vm=new Vue({
 						}
 					}	
 				}
-				//再消一次，避免上行也需要消除
+				//逆归，再消一次，直到上面一行不能消除
 				this.dieOneLine(rowNum);
-			}
-		},
-		
-		inArray:function(target,arr){
-			for(var i=0;i<arr.length;i++){
-				if(target==arr[i]){
-					return true;
-				}
-				return false;
 			}
 		}
 	},
