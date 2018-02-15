@@ -3,8 +3,9 @@ var vm=new Vue({
 	el:'#container',
 	
 	data:{
-		COLS:10,//宽度
-		ROWS:15,//高度
+		COLS:12,//宽度
+		ROWS:18,//高度
+		gameOver:false,//游戏结束
 		dieRows:0,//累计消除行数
 		activeCells:[],//活动方块
 		nextActiveCells:[],//下一个活动方块
@@ -15,6 +16,7 @@ var vm=new Vue({
 	},
 	
 	methods:{
+		
 		//初始化，
 		init:function(){
 			for(var y=0;y<this.ROWS;y++){
@@ -28,6 +30,18 @@ var vm=new Vue({
 				this.background.push(row);
 			}
 			this.renewActiveCells();
+		},
+		
+		//重新开始
+		restart:function(){
+			if(this.gameOver==false){
+				alert('游戏正在进行中');
+				return;
+			}
+			this.background=[];
+			this.dieRows=0;
+			this.init();
+			this.gameOver=false;
 		},
 		
 		//背景格子显示
@@ -192,6 +206,11 @@ var vm=new Vue({
 			}
 			//生成下个方块
 			this.renewNextActiveCells();
+			
+			//判断是否结束
+			if(this.canShift('NONE')==false){
+				this.gameOver=true;
+			}
 		},
 		
 		//绘制活动方块
@@ -252,6 +271,11 @@ var vm=new Vue({
 		
 		//操作
 		shift:function(type){
+			//游戏结束状态，不做操作
+			if(this.gameOver){
+				return;
+			}
+			//试算不能操作
 			if(!this.canShift(type)){
 				if(type=='FALL'){
 					this.removeActiveCells();		//移除活动方块
@@ -263,7 +287,7 @@ var vm=new Vue({
 				return;
 			}
 			
-			this.removeActiveCells();
+			this.removeActiveCells();//移除活动方块
 			switch(type){
 				case 'LEFT':
 					this.leftShift(this.activeCells);
@@ -281,16 +305,19 @@ var vm=new Vue({
 					while(this.canShift('FALL')){
 						this.fall(this.activeCells);
 					}
+					this.activeCells2Backgroud();	//活动方块变成背景
+					this.dieLine();					//消行
+					this.renewActiveCells();		//生成新的活动方块
 				break;
 				default:
 				break;
 			}
-			this.drawActiveCells();
+			this.drawActiveCells();//显示新的活动方块
 		},
 		
 		//试算能否移动
 		canShift:function(type){
-			var canShifFlag=true;
+			var canShiftFlag=true;
 			var cells=[];
 			
 			//复制一份
@@ -316,7 +343,14 @@ var vm=new Vue({
 				case 'FALL':
 					this.fall(cells);
 				break;
+				case 'FALL_TO_END':
+					//do nothing
+				break;
+				case 'NONE':
+					//do nothing
+				break;
 				default:
+					//do nothing
 				break;
 			}
 			
@@ -325,19 +359,19 @@ var vm=new Vue({
 				var cell=cells[i];
 				//是否超边界
 				if(cell.x<0||cell.y<0||cell.x>=this.COLS||cell.y>=this.ROWS){
-					canShifFlag = false;
+					canShiftFlag = false;
 					break;
 				}
 				//是否位置已被占
 				if(this.background[cell.y][cell.x].background==true){
-					canShifFlag = false;
+					canShiftFlag = false;
 					break
 				}
 			}
 			
 			//优化：考虑翻转时更灵活点 TODO
 			
-			return canShifFlag;
+			return canShiftFlag;
 		},
 		
 		//消行
@@ -359,7 +393,7 @@ var vm=new Vue({
 			}
 			//消行
 			if(dieFlag==true){
-				this.dieRows++;
+				this.dieRows++;//记分
 				for(var i=rowNum;i>=0;i--){
 					for(var x=0;x<this.COLS;x++){
 						if(i==0){
@@ -369,7 +403,7 @@ var vm=new Vue({
 						}
 					}	
 				}
-				//逆归，再消一次，直到上面一行不能消除
+				//递归，再消一次，直到当前行不能消除
 				this.dieOneLine(rowNum);
 			}
 		}
@@ -377,12 +411,15 @@ var vm=new Vue({
 	
 	created:function(){
 		this.init();
-		this.drawActiveCells();
+		this.drawActiveCells();//显示新的活动方块
 	}
 });
 
 $("body").on("keydown",function(e){
 	switch(e.keyCode){
+		case 13://ENTER
+			vm.restart();
+		break;
 		case 32://space
 			vm.shift('FALL_TO_END');
 		break;
@@ -405,3 +442,4 @@ $("body").on("keydown",function(e){
 setInterval(function(){
 	vm.shift('FALL');
 },500);
+
