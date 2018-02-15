@@ -36,8 +36,13 @@ var vm=new Vue({
 		
 		getNextActiveClass:function(x,y){
 			var active=false;
-			if(this.nextActiveCells[y] && this.nextActiveCells[y][x]){
-				active=true;
+			if(this.nextActiveCells){
+				for(var i=0;i<this.nextActiveCells.length;i++){
+					if(this.nextActiveCells[i].x==x-1 && this.nextActiveCells[i].y==y-1){
+						active=true;
+						break;
+					}
+				}
 			}
 			return {
 				'active':active,
@@ -57,16 +62,16 @@ var vm=new Vue({
 			this.activeCells=[];
 		},
 		
-		//生成新的方块	
-		renewActiveCells:function(){
+		renewNextActiveCells:function(){
 			var random=Math.floor(Math.random()*7+1);
+			var cells=[];
 			switch(random){
 				/* 
 					■ ■ ■ 
 					■
 				*/				
 				case 1://L型
-					this.activeCells=[
+					cells=[
 						{x:0,y:0},
 						{x:1,y:0},
 						{x:2,y:0},
@@ -78,7 +83,7 @@ var vm=new Vue({
 					■ ■ ■ 
 				*/
 				case 2://反L型
-					this.activeCells=[
+					cells=[
 						{x:0,y:1},
 						{x:0,y:0},
 						{x:2,y:1},
@@ -91,7 +96,7 @@ var vm=new Vue({
 					■
 				*/
 				case 3://丁字型
-					this.activeCells=[
+					cells=[
 						{x:0,y:1},
 						{x:0,y:0},
 						{x:1,y:1},
@@ -104,7 +109,7 @@ var vm=new Vue({
 					  ■
 				*/
 				case 4:
-					this.activeCells=[
+					cells=[
 						{x:0,y:1},
 						{x:0,y:0},
 						{x:1,y:1},
@@ -117,7 +122,7 @@ var vm=new Vue({
 					■
 				*/
 				case 5:
-					this.activeCells=[
+					cells=[
 						{x:0,y:1},
 						{x:1,y:0},
 						{x:1,y:1},
@@ -128,7 +133,7 @@ var vm=new Vue({
 					■ ■ ■ ■
 				*/
 				case 6:
-					this.activeCells=[
+					cells=[
 						{x:1,y:0},
 						{x:0,y:0},
 						{x:2,y:0},
@@ -140,7 +145,7 @@ var vm=new Vue({
 					■ ■
 				*/
 				case 7://田字型
-					this.activeCells=[
+					cells=[
 						{x:0,y:0},
 						{x:1,y:0},
 						{x:0,y:1},
@@ -150,13 +155,33 @@ var vm=new Vue({
 				default:
 				break;
 			}
+			cells.type=random;
+			this.nextActiveCells=cells;
+		},
+		
+		//生成新的方块	
+		renewActiveCells:function(){
+			//下个方块还未生成，先生成一个
+			if(this.nextActiveCells==null||this.nextActiveCells.length==0){
+				this.renewNextActiveCells();
+			}
 			
-			this.activeCells.type=random;
+			//下个方块重复为当前方块
+			this.activeCells=[];
+			for(var i=0;i<this.nextActiveCells.length;i++){
+				this.activeCells.push({
+					x:this.nextActiveCells[i].x,
+					y:this.nextActiveCells[i].y
+				});
+			}
+			this.activeCells.type=this.nextActiveCells.type;
 			
-			//移动方块到合适位置
+			//移动当前方块到合适位置
 			for(var i=0;i<this.COLS/2-1;i++){
 				this.rightShift(this.activeCells);
 			}
+			//生成下个方块
+			this.renewNextActiveCells();
 		},
 		
 		//绘制方块
@@ -215,13 +240,12 @@ var vm=new Vue({
 		
 		shift:function(type){
 			if(!this.canShift(type)){
-				//不能下落，生成新的方块
 				if(type=='FALL'){
-					this.removeActiveCells();
-					this.activeCells2Backgroud();
-					this.dieLine();
-					this.renewActiveCells();
-					this.drawActiveCells();
+					this.removeActiveCells();//移除方块
+					this.activeCells2Backgroud();//活动方块变成背景
+					this.dieLine();//消行
+					this.renewActiveCells();//生成新的方块
+					this.drawActiveCells();//显示新的方块
 				}
 				return;
 			}

@@ -32,11 +32,15 @@
 <div id="container">
 	分数：{{dieRows*100}}
 	<table>
-		<tr v-for="y in 5"><td v-for="x in 5" v-bind:class="getNextActiveClass(x,y)"></td></tr>
+		<tr v-for="y in 4">
+			<td v-for="x in 4" v-bind:class="getNextActiveClass(x,y)"></td>
+		</tr>
 	</table>
 	
 	<table>
-		<tr v-for="row in background"><td v-for="cell in row" v-bind:class="getCellClass(cell)"></td></tr>
+		<tr v-for="row in background">
+			<td v-for="cell in row" v-bind:class="getCellClass(cell)"></td>
+		</tr>
 	</table>
 </div>
 
