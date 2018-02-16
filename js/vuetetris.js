@@ -13,6 +13,17 @@ var vm=new Vue({
 	},
 	
 	computed:{
+		getGameState:function(){
+			if(this.gameState=='GOING'){
+				return '进行';
+			}
+			if(this.gameState=='PAUSE'){
+				return '暂停';
+			}
+			if(this.gameState=='END'){
+				return '结束';
+			}
+		}
 	},
 	
 	methods:{
@@ -48,9 +59,9 @@ var vm=new Vue({
 		pause:function(){
 			if(this.gameState=='PAUSE'){
 				this.changeGameState('GOING');
-			}else{
+			}else if(this.gameState=='GOING'){
 				this.changeGameState('PAUSE');
-			}			
+			}		
 		},
 		
 		//背景格子显示
@@ -444,7 +455,7 @@ $("body").on("keydown",function(e){
 	//console.log(e.which);
 	switch(e.which){
 		case 13://ENTER
-			vm.restart();
+			//vm.restart();
 		break;
 		case 32://space
 			vm.shift('FALL_TO_END');

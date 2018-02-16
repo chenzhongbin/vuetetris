@@ -30,7 +30,8 @@
 <body>
 
 <div id="container">
-	分数：{{dieRows*100}}
+	<div>分数：{{dieRows*100}}</div>
+	<div>游戏状态：{{getGameState}}</div>
 	<table>
 		<tr v-for="y in 4">
 			<td v-for="x in 4" v-bind:class="getNextActiveClass(x,y)"></td>
