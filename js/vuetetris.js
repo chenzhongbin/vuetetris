@@ -5,7 +5,7 @@ var vm=new Vue({
 	data:{
 		COLS:12,//宽度
 		ROWS:18,//高度
-		gameOver:false,//游戏结束
+		gameState:'READY',//游戏状态	READY,PAUSE,END,GOING
 		dieRows:0,//累计消除行数
 		activeCells:[],//活动方块
 		nextActiveCells:[],//下一个活动方块
@@ -30,18 +30,27 @@ var vm=new Vue({
 				this.background.push(row);
 			}
 			this.renewActiveCells();
+			this.changeGameState('GOING');
+		},
+		
+		changeGameState:function(gameState){
+			this.gameState=gameState;
 		},
 		
 		//重新开始
 		restart:function(){
-			if(this.gameOver==false){
-				alert('游戏正在进行中');
-				return;
-			}
 			this.background=[];
 			this.dieRows=0;
 			this.init();
-			this.gameOver=false;
+			this.changeGameState('GOING');
+		},
+		
+		pause:function(){
+			if(this.gameState=='PAUSE'){
+				this.changeGameState('GOING');
+			}else{
+				this.changeGameState('PAUSE');
+			}			
 		},
 		
 		//背景格子显示
@@ -209,7 +218,7 @@ var vm=new Vue({
 			
 			//判断是否结束
 			if(this.canShift('NONE')==false){
-				this.gameOver=true;
+				this.changeGameState('END');
 			}
 		},
 		
@@ -285,8 +294,8 @@ var vm=new Vue({
 		
 		//操作
 		shift:function(type){
-			//游戏结束状态，不做操作
-			if(this.gameOver){
+			//游戏非进行状态，禁止操作
+			if(this.gameState!='GOING'){
 				return;
 			}
 			//试算不能操作
@@ -432,7 +441,8 @@ var vm=new Vue({
 });
 
 $("body").on("keydown",function(e){
-	switch(e.keyCode){
+	//console.log(e.which);
+	switch(e.which){
 		case 13://ENTER
 			vm.restart();
 		break;
@@ -450,6 +460,12 @@ $("body").on("keydown",function(e){
 		break;
 		case 40://down
 			vm.shift('FALL');
+		break;
+		case 82://R
+			vm.restart();
+		break;
+		case 80://P
+			vm.pause();
 		break;
 	}
 });
