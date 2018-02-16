@@ -267,6 +267,20 @@ var vm=new Vue({
 				cells[i].x=center.x+center.y-srcY;
 				cells[i].y=center.y-center.x+srcX;
 			}
+			
+			//让翻转更灵活
+			var adjustX=0;//调整Ｘ坐标
+			for(var i=0;i<cells.length;i++){
+				if(cells[i].x<0 && cells[i].x<adjustX){
+					adjustX=cells[i].x;
+				}
+				if(cells[i].x>this.COLS-1 && cells[i].x-this.COLS+1>adjustX){
+					adjustX=cells[i].x-this.COLS+1;
+				}
+			}
+			for(var i=0;i<cells.length;i++){
+				cells[i].x=cells[i].x-adjustX;
+			}
 		},
 		
 		//操作
@@ -352,9 +366,14 @@ var vm=new Vue({
 				default:
 					//do nothing
 				break;
-			}
-			
-			//判断是否能移动
+			}		
+			canShiftFlag=this.judgeCanShift(cells);
+			return canShiftFlag;
+		},
+		
+		//判断是否可操作
+		judgeCanShift:function(cells){
+			var canShiftFlag=true;
 			for(var i=0;i<cells.length;i++){
 				var cell=cells[i];
 				//是否超边界
@@ -368,9 +387,6 @@ var vm=new Vue({
 					break
 				}
 			}
-			
-			//优化：考虑翻转时更灵活点 TODO
-			
 			return canShiftFlag;
 		},
 		
