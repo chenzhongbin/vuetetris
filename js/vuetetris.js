@@ -5,7 +5,8 @@ var vm=new Vue({
 	data:{
 		COLS:12,//宽度
 		ROWS:18,//高度
-		gameState:'READY',//游戏状态	READY,PAUSE,END,GOING
+		speed:500,//下落速度，单位毫秒
+		gameState:'END',//游戏状态	PAUSE,END,GOING
 		dieRows:0,//累计消除行数
 		activeCells:[],//活动方块
 		nextActiveCells:[],//下一个活动方块
@@ -40,8 +41,6 @@ var vm=new Vue({
 				}
 				this.background.push(row);
 			}
-			this.renewActiveCells();
-			this.changeGameState('GOING');
 		},
 		
 		changeGameState:function(gameState){
@@ -51,8 +50,10 @@ var vm=new Vue({
 		//重新开始
 		restart:function(){
 			this.background=[];
-			this.dieRows=0;
 			this.init();
+			this.dieRows=0;
+			this.renewActiveCells();			
+			this.drawActiveCells();
 			this.changeGameState('GOING');
 		},
 		
@@ -447,7 +448,7 @@ var vm=new Vue({
 	
 	created:function(){
 		this.init();
-		this.drawActiveCells();//显示新的活动方块
+		//this.drawActiveCells();//显示新的活动方块
 	}
 });
 
@@ -484,5 +485,5 @@ $("body").on("keydown",function(e){
 //自动下落
 setInterval(function(){
 	vm.shift('FALL');
-},500);
+},vm.speed);
 
